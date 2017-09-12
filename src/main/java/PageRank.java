@@ -6,6 +6,10 @@ import org.apache.hadoop.hbase.mapreduce.TableInputFormat;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.PairFunction;
+import scala.Tuple2;
+
+import java.util.ArrayList;
 
 public class PageRank {
     public static void main(String[] args) {
@@ -26,6 +30,15 @@ public class PageRank {
                 TableInputFormat.class,
                 ImmutableBytesWritable.class,
                 Result.class);
+
+        JavaPairRDD<String, ArrayList<String>> webGraph = hbaseData.mapToPair(
+                new PairFunction<Tuple2<ImmutableBytesWritable, Result>, String, ArrayList<String>>() {
+                    public Tuple2<String, ArrayList<String>> call(Tuple2<ImmutableBytesWritable,
+                                                                  Result> tuple2) throws Exception {
+                        return null;
+                    }
+                }
+        );
 
     }
 }
