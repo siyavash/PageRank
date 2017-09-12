@@ -5,7 +5,9 @@ import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableInputFormat;
+import org.apache.hadoop.hbase.mapreduce.TableOutputFormat;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -29,7 +31,7 @@ public class PageRank {
     private static final byte[] PAGE_RANK = "pr".getBytes();
     private static final byte[] SUB_LINKS_COLUMN = "subLinks".getBytes();
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         final SparkConf sparkConf = new SparkConf().setAppName("PageRank").setMaster("spark://master:7077");
 
         JavaSparkContext javaSparkContext = new JavaSparkContext(sparkConf);
@@ -41,6 +43,10 @@ public class PageRank {
         hbaseConfiguration.set("hbase.zookeeper.property.clientPort", "2181");
         hbaseConfiguration.set("hbase.zookeeper.quorum", "master,slave");
         hbaseConfiguration.set(TableInputFormat.INPUT_TABLE, "wb");
+
+        Job newAPIJobConfiguration = Job.getInstance(hbaseConfiguration);
+        newAPIJobConfiguration.getConfiguration().set(TableOutputFormat.OUTPUT_TABLE, "w");
+        newAPIJobConfiguration.setOutputFormatClass(org.apache.hadoop.hbase.mapreduce.TableOutputFormat.class);
 
         JavaPairRDD<ImmutableBytesWritable, Result> hbaseData = javaSparkContext.newAPIHadoopRDD(
                 hbaseConfiguration,
@@ -132,5 +138,7 @@ public class PageRank {
                     }
                 }
         );
+
+        hbasePuts.saveAsNewAPIHadoopDataset(newAPIJobConfiguration.getConfiguration());
     }
 }
