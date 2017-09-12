@@ -7,12 +7,16 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.PairFlatMapFunction;
 import org.apache.spark.api.java.function.PairFunction;
 import scala.Tuple2;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 public class PageRank {
+
+    private static final int NUM_OF_PAGE_RANK_ITERATES = 42;
 
     private static final byte[] SL_COLUMN_FAMILY = "sl".getBytes();
     private static final byte[] SUB_LINKS_COLUMN = "subLinks".getBytes();
@@ -69,6 +73,17 @@ public class PageRank {
                     }
                 }
         );
+
+        for(int it = 0; it < NUM_OF_PAGE_RANK_ITERATES; it++) {
+            JavaPairRDD<String, Double> contributions = webGraph.join(pageRanks).flatMapToPair(
+                    new PairFlatMapFunction<Tuple2<String, Tuple2<ArrayList<String>, Double>>, String, Double>() {
+                        public Iterator<Tuple2<String, Double>>
+                        call(Tuple2<String, Tuple2<ArrayList<String>, Double>> stringTuple2Tuple2) throws Exception {
+                            return null;
+                        }
+                    }
+            );
+        }
 
     }
 }
