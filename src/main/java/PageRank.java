@@ -8,6 +8,7 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.Function;
+import org.apache.spark.api.java.function.Function2;
 import org.apache.spark.api.java.function.PairFlatMapFunction;
 import org.apache.spark.api.java.function.PairFunction;
 import scala.Tuple2;
@@ -19,6 +20,7 @@ import java.util.List;
 public class PageRank {
 
     private static final int NUM_OF_PAGE_RANK_ITERATES = 42;
+    private static final double DUMPING_FACTOR = .85;
 
     private static final byte[] SL_COLUMN_FAMILY = "sl".getBytes();
     private static final byte[] SUB_LINKS_COLUMN = "subLinks".getBytes();
@@ -98,6 +100,21 @@ public class PageRank {
                         }
                     }
             );
+
+            pageRanks = contributions
+                    .reduceByKey(
+                    new Function2<Double, Double, Double>() {
+                        public Double call(Double v1, Double v2) throws Exception {
+                            return v1 + v2;
+                        }
+                    })
+                    .mapValues(
+                            new Function<Double, Double>() {
+                                public Double call(Double v1) throws Exception {
+                                    return DUMPING_FACTOR * v1 + (1. - DUMPING_FACTOR);
+                                }
+                            }
+                    );
         }
 
     }
