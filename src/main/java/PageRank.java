@@ -1,9 +1,11 @@
 import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.mapreduce.TableInputFormat;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
@@ -22,11 +24,13 @@ public class PageRank {
     private static final int NUM_OF_PAGE_RANK_ITERATES = 42;
     private static final double DUMPING_FACTOR = .85;
 
+    private static final byte[] CF_COLUMN_FAMILY = "cf".getBytes();
     private static final byte[] SL_COLUMN_FAMILY = "sl".getBytes();
+    private static final byte[] PAGE_RANK = "pr".getBytes();
     private static final byte[] SUB_LINKS_COLUMN = "subLinks".getBytes();
 
     public static void main(String[] args) {
-        SparkConf sparkConf = new SparkConf().setAppName("PageRank").setMaster("spark://master:7077");
+        final SparkConf sparkConf = new SparkConf().setAppName("PageRank").setMaster("spark://master:7077");
 
         JavaSparkContext javaSparkContext = new JavaSparkContext(sparkConf);
 
@@ -117,5 +121,16 @@ public class PageRank {
                     );
         }
 
+        JavaPairRDD<ImmutableBytesWritable, Put> hbasePuts = pageRanks.mapToPair(
+                new PairFunction<Tuple2<String, Double>, ImmutableBytesWritable, Put>() {
+                    public Tuple2<ImmutableBytesWritable, Put>
+                    call(Tuple2<String, Double> stringDoubleTuple2) throws Exception {
+                        Put put = new Put(Bytes.toBytes(stringDoubleTuple2._1));
+                        put.addColumn(CF_COLUMN_FAMILY, PAGE_RANK, Bytes.toBytes(stringDoubleTuple2._2));
+
+                        return new Tuple2<ImmutableBytesWritable, Put>(new ImmutableBytesWritable(), put);
+                    }
+                }
+        );
     }
 }
