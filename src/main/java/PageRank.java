@@ -45,7 +45,7 @@ public class PageRank {
         hbaseConfiguration.set(TableInputFormat.INPUT_TABLE, "wb");
 
         Job newAPIJobConfiguration = Job.getInstance(hbaseConfiguration);
-        newAPIJobConfiguration.getConfiguration().set(TableOutputFormat.OUTPUT_TABLE, "w");
+        newAPIJobConfiguration.getConfiguration().set(TableOutputFormat.OUTPUT_TABLE, "wb");
         newAPIJobConfiguration.setOutputFormatClass(org.apache.hadoop.hbase.mapreduce.TableOutputFormat.class);
 
         JavaPairRDD<ImmutableBytesWritable, Result> hbaseData = javaSparkContext.newAPIHadoopRDD(
