@@ -1,3 +1,4 @@
+import com.google.common.collect.Iterables;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Result;
@@ -13,6 +14,7 @@ import scala.Tuple2;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 public class PageRank {
 
@@ -79,7 +81,16 @@ public class PageRank {
                     new PairFlatMapFunction<Tuple2<String, Tuple2<ArrayList<String>, Double>>, String, Double>() {
                         public Iterator<Tuple2<String, Double>>
                         call(Tuple2<String, Tuple2<ArrayList<String>, Double>> stringTuple2Tuple2) throws Exception {
-                            return null;
+                            int outputLinkCount = Iterables.size(stringTuple2Tuple2._2._1);
+
+                            List<Tuple2<String, Double>> results = new ArrayList<Tuple2<String, Double>>();
+                            for(String outputLink : stringTuple2Tuple2._2._1) {
+                                results.add(new Tuple2<String, Double>(
+                                        outputLink,
+                                        stringTuple2Tuple2._2._2 / outputLinkCount));
+                            }
+
+                            return results.iterator();
                         }
                     }
             );
