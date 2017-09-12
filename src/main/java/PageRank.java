@@ -84,6 +84,10 @@ public class PageRank {
                             int outputLinkCount = Iterables.size(stringTuple2Tuple2._2._1);
 
                             List<Tuple2<String, Double>> results = new ArrayList<Tuple2<String, Double>>();
+
+                            //handle convergent
+                            results.add(new Tuple2<String, Double>(stringTuple2Tuple2._1, 0.));
+
                             for(String outputLink : stringTuple2Tuple2._2._1) {
                                 results.add(new Tuple2<String, Double>(
                                         outputLink,
