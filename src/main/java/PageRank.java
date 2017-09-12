@@ -6,6 +6,7 @@ import org.apache.hadoop.hbase.mapreduce.TableInputFormat;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaSparkContext;
+import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.PairFunction;
 import scala.Tuple2;
 
@@ -57,6 +58,14 @@ public class PageRank {
                         }
 
                         return new Tuple2<String, ArrayList<String>>(new String(tuple2._1.copyBytes()), outputLinks);
+                    }
+                }
+        );
+
+        JavaPairRDD<String, Double> pageRanks = webGraph.mapValues(
+                new Function<ArrayList<String>, Double>() {
+                    public Double call(ArrayList<String> v1) throws Exception {
+                        return 1.;
                     }
                 }
         );
